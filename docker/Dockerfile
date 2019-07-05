@@ -1,4 +1,4 @@
-FROM python:3.6.8-alpine3.9
+FROM python:3.6.8-alpine3.10
 
 COPY wait_for.sh kafka_wait_for_topics.py mysql_check.py /
 COPY ashrc /root/.ashrc
@@ -84,9 +84,9 @@ ONBUILD RUN \
             apk add --no-cache --virtual .build-librdkafka \
                 libressl2.7-libcrypto \
                 librdkafka-dev \
-                libressl2.7-libssl \
-                --repository=http://dl-cdn.alpinelinux.org/alpine/edge/main \
-                --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community && \
+                libressl2.7-libssl && \
+            #    --repository=http://dl-cdn.alpinelinux.org/alpine/edge/main \
+            #    --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community && \
             # Clone repository and checkout requested version.
             # This many steps are needed to support gerrit patch sets.
             mkdir -p /app && \
@@ -147,7 +147,8 @@ ONBUILD RUN \
             printf "Constraints file: %s\\n" \
                 "$CONSTRAINTS_FILE" >> /VERSIONS && \
             # Clean after instalation.
-            apk del .build-deps .build-librdkafka && \
+            # apk del .build-deps .build-librdkafka && \
+            # apk del .build-deps && \
             rm -rf \
                 /app \
                 /root/.cache/ \
