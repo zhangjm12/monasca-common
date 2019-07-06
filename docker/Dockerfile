@@ -148,7 +148,7 @@ ONBUILD RUN \
                 "$CONSTRAINTS_FILE" >> /VERSIONS && \
             # Clean after instalation.
             # apk del .build-deps .build-librdkafka && \
-            # apk del .build-deps && \
+            apk del .build-deps && \
             rm -rf \
                 /app \
                 /root/.cache/ \
