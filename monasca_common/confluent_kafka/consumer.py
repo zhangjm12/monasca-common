@@ -48,15 +48,19 @@ class KafkaConsumer(object):
         consumer_config = {'bootstrap.servers': bootstrap_servers,
                            'group.id': group_id,
                            'fetch.min.bytes': fetch_min_bytes,
+                           'session.timeout.ms': 6000,
                            'client.id': client_id,
                            'enable.auto.commit': False,
-                           'default.topic.config':
-                               {'auto.offset.reset': 'earliest'}
+                           'auto.offset.reset': 'earliest'
                            }
+
+        def print_assignment(consumer, partitions):
+            print('Assignment:', partitions)
+
         self._commit_callback = commit_callback
         self._max_commit_interval = max_commit_interval
         self._consumer = confluent_kafka.Consumer(consumer_config)
-        self._consumer.subscribe([topic], on_revoke=repartition_callback)
+        self._consumer.subscribe([topic], on_revoke=repartition_callback, on_assign=print_assignment)
         self._last_commit = None
 
     def __iter__(self):
