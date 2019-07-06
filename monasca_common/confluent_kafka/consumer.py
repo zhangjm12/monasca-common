@@ -62,6 +62,8 @@ class KafkaConsumer(object):
         self._consumer = confluent_kafka.Consumer(consumer_config)
         self._consumer.subscribe([topic], on_revoke=repartition_callback, on_assign=print_assignment)
         self._last_commit = None
+        print("consumer config:{}".format(consumer_config))
+        print("topic:{}".format(topic))
 
     def __iter__(self):
         self._last_commit = datetime.datetime.now()
@@ -70,12 +72,15 @@ class KafkaConsumer(object):
             message = self._consumer.poll(timeout=5)
 
             if message is None:
+                print("message is None")
                 time.sleep(0.1)
                 continue
             elif not message.error():
+                print("yield message")
                 yield message
             elif message.error().code() == \
                     confluent_kafka.KafkaError._PARTITION_EOF:
+                print("Partition EOF")
                 time.sleep(0.1)
                 continue
             else:
@@ -83,6 +88,7 @@ class KafkaConsumer(object):
                 raise confluent_kafka.KafkaException(message.error())
 
             if self._commit_callback:
+                print("commit callback")
                 time_now = datetime.datetime.now()
                 time_delta = time_now - self._last_commit
                 if time_delta.total_seconds() > self._max_commit_interval:
@@ -91,3 +97,4 @@ class KafkaConsumer(object):
     def commit(self):
         self._last_commit = datetime.datetime.now()
         self._consumer.commit()
+        print("commit:{}".format(self._last_commit))
