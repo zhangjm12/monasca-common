@@ -93,6 +93,8 @@ class KafkaConsumer(object):
 
         self._consumer = self._create_kafka_consumer()
 
+        self._retry_count = 0
+
     def _create_kafka_consumer(self, partitions=None):
         # No auto-commit so that commits only happen after the message is processed.
 
@@ -207,6 +209,7 @@ class KafkaConsumer(object):
                                      .format(self._kafka_topic))
                             state_change_event.wait()
                             state_change_event.clear()
+                            self._retry_count = 0
                             continue
 
                         log.info("Acquired locks on partition set {} "
@@ -217,11 +220,15 @@ class KafkaConsumer(object):
                         # to be updated outside of construction.
                         self._consumer.stop()
                         self._consumer = self._create_kafka_consumer(self._partitions)
+                        self._retry_count = 0
                         return
 
                 elif self._set_partitioner.allocating:
                     log.info("Waiting to acquire locks on partition set")
                     self._set_partitioner.wait_for_acquire()
+                    self._retry_count += 1
+                    if self._retry_count > 10:
+                        raise Exception("Too many retries to acquire locks on partition set")
 
         except Exception:
             log.exception('KafkaConsumer encountered fatal exception '
